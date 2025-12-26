@@ -3,6 +3,7 @@ import re
 import requests
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
+import socket
 
 NUM_FEATURES = 30
 
@@ -36,45 +37,62 @@ def extract_features(url: str):
     # HTML / content features
     # -----------------
     try:
-        response = requests.get(url, timeout=5)
+        response = requests.get(
+            url,
+            timeout=5,
+            headers={"User-Agent": "Mozilla/5.0"}
+        )
+
+        if response.status_code != 200:
+            raise Exception("Non-200 response")
+
         html = response.text
         soup = BeautifulSoup(html, "html.parser")
 
-        # 10. Page fetch success
-        features[0, 10] = 1
+        features[0, 10] = 1  # page fetch success
 
         links = soup.find_all("a", href=True)
         total_links = len(links)
-
-        # 11. Number of anchor links
         features[0, 11] = total_links
 
-        # 12. External link ratio
         external_links = [
             a for a in links
             if urlparse(a["href"]).hostname
             and urlparse(a["href"]).hostname != hostname
         ]
-        features[0, 12] = (
-            len(external_links) / total_links if total_links > 0 else 0
-        )
+        features[0, 12] = len(external_links) / total_links if total_links else 0
 
-        # 13. Presence of form tag
         features[0, 13] = 1 if soup.find("form") else 0
-
-        # 14. Presence of iframe
         features[0, 14] = 1 if soup.find("iframe") else 0
-
-        # 15. JavaScript redirects
         features[0, 15] = 1 if "window.location" in html.lower() else 0
-
-        # 16. OnMouseOver usage
         features[0, 16] = 1 if "onmouseover" in html.lower() else 0
 
     except Exception:
-        # page not reachable → leave defaults
+        # Any failure → leave content features as 0
         pass
 
-    # Remaining features [17–29] stay neutral for now
+    # -----------------
+    # Domain / external features
+    # -----------------
+    features[0, 17] = len(hostname)
+    features[0, 18] = hostname.count('.')
+
+    shorteners = ["bit.ly", "tinyurl", "goo.gl", "t.co", "ow.ly"]
+    features[0, 19] = 1 if any(s in url.lower() for s in shorteners) else 0
+
+    suspicious_tlds = [".zip", ".review", ".country", ".kim", ".cricket", ".work"]
+    features[0, 20] = 1 if any(hostname.endswith(tld) for tld in suspicious_tlds) else 0
+
+    try:
+        socket.gethostbyname(hostname)
+        features[0, 21] = 1
+    except Exception:
+        features[0, 21] = 0
+
+    # -----------------
+    # Reputation features (not real-time feasible)
+    # -----------------
+    for idx in range(22, 30):
+        features[0, idx] = 0
 
     return features
