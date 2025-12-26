@@ -12,6 +12,9 @@ SUSPICIOUS_KEYWORDS = [
     "bank", "signin", "confirm", "password"
 ]
 
+def is_suspicious_url(url: str):
+    return any(k in url.lower() for k in SUSPICIOUS_KEYWORDS)
+
 def extract_features(url: str):
     features = np.zeros((1, NUM_FEATURES), dtype=float)
 
@@ -34,42 +37,42 @@ def extract_features(url: str):
     features[0, 9] = sum(1 for kw in SUSPICIOUS_KEYWORDS if kw in url.lower())
 
     # -----------------
-    # HTML / content features
+    # HTML / content features (only if suspicious)
     # -----------------
-    try:
-        response = requests.get(
-            url,
-            timeout=5,
-            headers={"User-Agent": "Mozilla/5.0"}
-        )
+    if is_suspicious_url(url):
+        try:
+            response = requests.get(
+                url,
+                timeout=2,
+                headers={"User-Agent": "Mozilla/5.0"}
+            )
 
-        if response.status_code != 200:
-            raise Exception("Non-200 response")
+            if response.status_code != 200:
+                raise Exception("Non-200 response")
 
-        html = response.text
-        soup = BeautifulSoup(html, "html.parser")
+            html = response.text
+            soup = BeautifulSoup(html, "html.parser")
 
-        features[0, 10] = 1  # page fetch success
+            features[0, 10] = 1  # page fetch success
 
-        links = soup.find_all("a", href=True)
-        total_links = len(links)
-        features[0, 11] = total_links
+            links = soup.find_all("a", href=True)
+            total_links = len(links)
+            features[0, 11] = total_links
 
-        external_links = [
-            a for a in links
-            if urlparse(a["href"]).hostname
-            and urlparse(a["href"]).hostname != hostname
-        ]
-        features[0, 12] = len(external_links) / total_links if total_links else 0
+            external_links = [
+                a for a in links
+                if urlparse(a["href"]).hostname
+                and urlparse(a["href"]).hostname != hostname
+            ]
+            features[0, 12] = len(external_links) / total_links if total_links else 0
 
-        features[0, 13] = 1 if soup.find("form") else 0
-        features[0, 14] = 1 if soup.find("iframe") else 0
-        features[0, 15] = 1 if "window.location" in html.lower() else 0
-        features[0, 16] = 1 if "onmouseover" in html.lower() else 0
+            features[0, 13] = 1 if soup.find("form") else 0
+            features[0, 14] = 1 if soup.find("iframe") else 0
+            features[0, 15] = 1 if "window.location" in html.lower() else 0
+            features[0, 16] = 1 if "onmouseover" in html.lower() else 0
 
-    except Exception:
-        # Any failure → leave content features as 0
-        pass
+        except Exception:
+            pass  # leave content features as 0
 
     # -----------------
     # Domain / external features
@@ -90,7 +93,7 @@ def extract_features(url: str):
         features[0, 21] = 0
 
     # -----------------
-    # Reputation features (not real-time feasible)
+    # Reputation placeholders
     # -----------------
     for idx in range(22, 30):
         features[0, idx] = 0
