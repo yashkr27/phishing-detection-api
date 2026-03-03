@@ -10,17 +10,30 @@ from app.predict import predict_url
 app = FastAPI(title="Phishing Detection API")
 
 # ----------------------------
-# CORS (Frontend: localhost:5500)
+# CORS (Development: Allow All)
 # ----------------------------
 app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5500",
-    ],
-    allow_credentials=True,
+    CORSMiddleware, #cross origin resource sharing 
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# ----------------------------
+# Root endpoint
+# ----------------------------
+@app.get("/")
+def read_root():
+    return {"status": "online", "message": "Phishing Detection API is running"}
+
+
+# Manually handle OPTIONS for CORS troubleshooting if needed
+@app.options("/{path:path}")
+def options_handler(path: str):
+    return {"status": "ok"}
+
 
 # ----------------------------
 # Request schema
@@ -33,4 +46,5 @@ class URLRequest(BaseModel):
 # ----------------------------
 @app.post("/predict")
 def predict(req: URLRequest):
-    return predict_url(req.url)
+        return predict_url(req.url)
+
