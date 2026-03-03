@@ -98,4 +98,4 @@ def extract_features(url: str):
     for idx in range(22, 30):
         features[0, idx] = 0
 
-        return features
+    return features
