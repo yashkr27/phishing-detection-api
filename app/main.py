@@ -47,3 +47,4 @@ class URLRequest(BaseModel):
 @app.post("/predict")
 def predict(req: URLRequest):
         return predict_url(req.url)
+
