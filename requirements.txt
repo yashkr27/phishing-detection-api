@@ -7,3 +7,4 @@ xgboost
 joblib
 requests
 beautifulsoup4
+pip
