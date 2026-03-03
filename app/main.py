@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel 
 
 from app.predict import predict_url
 
@@ -11,6 +11,7 @@ app = FastAPI(title="Phishing Detection API")
 
 # ----------------------------
 # CORS (Development: Allow All)
+#to connect FE and BE
 # ----------------------------
 app.add_middleware(
     CORSMiddleware, #cross origin resource sharing 
@@ -40,6 +41,8 @@ def options_handler(path: str):
 # ----------------------------
 class URLRequest(BaseModel):
     url: str
+
+
 
 # ----------------------------
 # Prediction endpoint
