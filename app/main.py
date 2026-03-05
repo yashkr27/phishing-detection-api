@@ -14,7 +14,7 @@ app = FastAPI(title="Phishing Detection API")
 #to connect FE and BE
 # ----------------------------
 app.add_middleware(
-    CORSMiddleware, #cross origin resource sharing 
+    CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=False,
     allow_methods=["*"],
@@ -30,10 +30,7 @@ def read_root():
     return {"status": "online", "message": "Phishing Detection API is running"}
 
 
-# Manually handle OPTIONS for CORS troubleshooting if needed
-@app.options("/{path:path}")
-def options_handler(path: str):
-    return {"status": "ok"}
+# Manual OPTIONS handler removed - CORSMiddleware handles preflight correctly
 
 
 # ----------------------------

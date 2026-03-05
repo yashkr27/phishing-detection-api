@@ -78,7 +78,7 @@ def extract_features(url: str):
     # Domain / external features
     # -----------------
     features[0, 17] = len(hostname)
-    features[0, 18] = hostname.count('.')
+    features[0, 18] = 1 if parsed.port else 0  # Was duplicate hostname dot count
 
     shorteners = ["bit.ly", "tinyurl", "goo.gl", "t.co", "ow.ly"]
     features[0, 19] = 1 if any(s in url.lower() for s in shorteners) else 0
