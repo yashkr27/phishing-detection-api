@@ -17,7 +17,7 @@ def predict_url(url: str):
     # Predict phishing probability
     prob = model.predict_proba(features_scaled)[0][1]
 
-    label = "phishing" if prob >= 0.5 else "legitimate"
+    label = "phishing" if prob >= 0.8 else "legitimate"
 
     return {
         "label": label,
